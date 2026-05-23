@@ -87,6 +87,7 @@ type target =
   | TypeCheck
   | Executable of { bin_path: string; entrypoint: entrypoint; }
   | CStandalone of { output_path: string; entrypoint: entrypoint option; }
+  | LLVMStandalone of { output_path: string; entrypoint: entrypoint option; }
 [@@deriving eq]
 
 type error_reporting_mode =
@@ -168,6 +169,19 @@ let parse_c_target (arglist: arglist): (arglist * target) =
       | None ->
          Errors.missing_entrypoint ())
 
+let parse_llvm_target (arglist: arglist): (arglist * target) =
+  match pop_value_flag arglist "entrypoint" with
+  | Some (arglist, entrypoint) ->
+     let (arglist, output_path) = get_output arglist in
+     (arglist, LLVMStandalone { output_path = output_path; entrypoint = Some (parse_entrypoint entrypoint) })
+  | None ->
+     (match pop_bool_flag arglist "no-entrypoint" with
+      | Some arglist ->
+         let (arglist, output_path) = get_output arglist in
+         (arglist, LLVMStandalone { output_path = output_path; entrypoint = None })
+      | None ->
+         Errors.missing_entrypoint ())
+
 let parse_target_type (arglist: arglist): (arglist * target) =
   match pop_value_flag arglist "target-type" with
   | Some (arglist, target_value) ->
@@ -179,6 +193,9 @@ let parse_target_type (arglist: arglist): (arglist * target) =
       | "c" ->
          (* Build a standaloine C file. *)
          parse_c_target arglist
+      | "llvm" ->
+         (* Build a standalone LLVM IR file. *)
+         parse_llvm_target arglist
       | "tc" ->
          (* Typecheck. *)
          (arglist, TypeCheck)
