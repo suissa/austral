@@ -29,6 +29,8 @@ type target =
   (** Compile to C, generate an executable. *)
   | CStandalone of { output_path: string; entrypoint: entrypoint option; }
   (** Compile to a standalone C file. *)
+  | LLVMStandalone of { output_path: string; entrypoint: entrypoint option; }
+  (** Compile to LLVM IR (.ll), through C backend lowering. *)
 [@@deriving eq]
 
 type error_reporting_mode =

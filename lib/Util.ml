@@ -208,6 +208,15 @@ let compile_c_code (source_path: string) (output_path: string): command_output =
   else
     o
 
+let compile_c_to_llvm (source_path: string) (output_path: string): command_output =
+  let cmd = "clang -S -emit-llvm " ^ source_path ^ " -o " ^ output_path in
+  let o = run_command cmd in
+  let (CommandOutput { command; code; stdout; stderr }) = o in
+  if code <> 0 then
+    Errors.c_compiler_error ~command ~exit_code:code ~stdout ~stderr
+  else
+    o
+
 let rec map_with_context (f: ('c * 'a) -> ('c * 'b)) (ctx: 'c) (list: 'a list): ('c * ('b list)) =
   match list with
   | first::rest ->

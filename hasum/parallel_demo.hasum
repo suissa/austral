@@ -1,0 +1,12 @@
+-- .hasum experimental syntax
+-- extern follows a gleam/erlang-style declaration: available after compile, no local codegen
+extern tokenApiCall(payload: Text): Text
+
+parallel heavy(x: Int): Int = x * x + 42
+parallel hashRound(x: Int): Int = x * 1103515245 + 12345
+
+benchmarkMap heavy [1,2,3,4,5]
+
+letToken :: LinearAutoDestroy Int
+letToken = LinearAutoDestroy 10
+autodestroy letToken

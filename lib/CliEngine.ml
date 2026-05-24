@@ -104,7 +104,7 @@ and print_compile_usage _: unit =
   print_endline "";
   print_endline "Options:";
   print_endline "    --help          Print this text.";
-  print_endline "    --target-type   One of `bin`, `tc`, `c`. Default is `bin`.";
+  print_endline "    --target-type   One of `bin`, `tc`, `c`, `llvm`. Default is `bin`.";
   print_endline "    --output        Path to the output file.";
   print_endline "    --entrypoint    The name of the entrypoint function, in the";
   print_endline "                    format `<module name>:<function name>`.";
@@ -171,6 +171,8 @@ and exec_target (mods: module_source list) (target: target): unit =
      exec_compile_to_bin mods bin_path entrypoint
   | CStandalone { output_path; entrypoint; } ->
      exec_compile_to_c mods output_path entrypoint
+  | LLVMStandalone { output_path; entrypoint; } ->
+     exec_compile_to_llvm mods output_path entrypoint
 
 and exec_compile_to_bin (mods: module_source list) (bin_path: string) (entrypoint: entrypoint): unit =
   (* Compile everything to a C file. *)
@@ -206,3 +208,9 @@ and exec_compile_to_c (mods: module_source list) (output_path: string) (entrypoi
   in
   (* Write the output to the given file. *)
   write_string_to_file output_path (compiler_code compiler)
+
+and exec_compile_to_llvm (mods: module_source list) (output_path: string) (entrypoint: entrypoint option): unit =
+  let cfile: string = Filename.temp_file "austral_" ".c" in
+  exec_compile_to_c mods cfile entrypoint;
+  let _ = compile_c_to_llvm cfile output_path in
+  ()
