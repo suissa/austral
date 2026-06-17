@@ -3,7 +3,7 @@ SRC := lib/*.ml lib/*.mli lib/*.mll lib/*.mly lib/dune bin/dune bin/austral.ml l
 PREFIX ?= /usr/local
 
 .PHONY: all
-all: $(BIN)
+all: $(BIN) hasum
 
 lib/BuiltInModules.ml: lib/builtin/*.aui lib/builtin/*.aum lib/prelude.h lib/prelude.c
 	python3 concat_builtins.py
@@ -26,4 +26,18 @@ uninstall:
 
 .PHONY: clean
 clean:
-	rm -f $(BIN); rm -rf _build; rm -f lib/BuiltInModules.ml
+	rm -f $(BIN); rm -rf _build; rm -f lib/BuiltInModules.ml; rm -f hasum/*.hs hasum/parallel_demo
+
+HASUM_FILES := $(wildcard hasum/*.hasum)
+
+.PHONY: hasum
+hasum:
+	@if [ -n "$(HASUM_FILES)" ]; then \
+	  if command -v ghc >/dev/null 2>&1; then \
+	    python3 tools/hasum_compiler.py $(HASUM_FILES); \
+	  else \
+	    echo "warning: ghc not found; skipping .hasum compilation"; \
+	  fi; \
+	else \
+	  echo "no .hasum files found"; \
+	fi
